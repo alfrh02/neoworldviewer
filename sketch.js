@@ -19,19 +19,27 @@ controls.update();
 
 /// lighting
 
-const lightTarget = new THREE.Object3D;
-lightTarget.position.set(1, 0, 1);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.01);
 
-const light = new THREE.DirectionalLight(0xffffff, 0.5);
-light.target = lightTarget;
+const sunLightTarget = new THREE.Object3D;
+sunLightTarget.position.set(1, 0, 1);
 
-scene.add(lightTarget);
-scene.add(light);
+const sunLight = new THREE.DirectionalLight(0xffffff, 0.5);
+sunLight.target = sunLightTarget;
+
+scene.add(ambientLight);
+scene.add(sunLightTarget);
+scene.add(sunLight);
 
 /// world
 
-const worldGeometry = new THREE.SphereGeometry(1);
-const worldMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+const worldGeometry = new THREE.SphereGeometry(1, 32, 32);
+const worldTexture = new THREE.TextureLoader().load("public/debug-texture.png");
+worldTexture.wrapS = THREE.RepeatWrapping;
+worldTexture.wrapT = THREE.RepeatWrapping;
+worldTexture.minFilter = THREE.NearestFilter;
+worldTexture.magFilter = THREE.NearestFilter;
+const worldMaterial = new THREE.MeshStandardMaterial({ map: worldTexture });
 const world = new THREE.Mesh(worldGeometry, worldMaterial);
 scene.add(world);
 
@@ -40,17 +48,15 @@ scene.add(world);
 const starGeometry = new THREE.SphereGeometry(0.5, 1, 1);
 const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
-/// sun
-
-const sunGeometry = new THREE.SphereGeometry(2);
+const sunGeometry = new THREE.SphereGeometry(1);
 const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
 const sun = new THREE.Mesh(sunGeometry, sunMaterial);
-sun.position.set(0.5, 0, 0.5);
+sun.position.set(-50, 50, -50);
 scene.add(sun);
 
 for (let i = 0; i < 128; i++) {
 	const star = new THREE.Mesh(starGeometry, starMaterial);
-	const position = convertGlobeCoords(random(-90,90), random(-180, 180), 100)
+	const position = convertGlobeCoords(random(-90,90), random(-180, 180), 512)
 
 	star.position.set(position[0], position[1], position[2]);
 	scene.add(star);
@@ -61,11 +67,7 @@ function animate() {
 	renderer.render(scene, camera);
 	controls.update();
 
-	theta += 1;
-	sun.position.x += Math.sin(theta/1000);
-	sun.position.z += Math.cos(theta/1000);
-
-	//light.position.set(sun.position);
+	world.rotation.y += 0.0001;
 }
 
 function convertGlobeCoords(latitude, longitude, radius) {
